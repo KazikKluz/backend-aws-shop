@@ -1,4 +1,4 @@
-export default async () => {
+const getProductList = async () => {
   return {
     products: [
       { id: '001', title: 'test1', description: 'some description', price: 10 },
@@ -6,3 +6,5 @@ export default async () => {
     ],
   };
 };
+
+export default getProductList;

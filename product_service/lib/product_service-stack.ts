@@ -12,9 +12,21 @@ export class ProductServiceStack extends cdk.Stack {
     const ID = 'backend-shop';
 
     const getProductList = new NodejsFunction(this, `${ID}-getProductList`, {
-      entry: path.join(__dirname, 'lambda/index.ts'),
+      entry: path.join(__dirname, 'getProductList/index.ts'),
       handler: 'index.handler',
       runtime: Runtime.NODEJS_20_X,
+      bundling: {
+        minify: true,
+      },
+    });
+
+    const getProduct = new NodejsFunction(this, `${ID}-getProduct`, {
+      entry: path.join(__dirname, 'getProduct/index.ts'),
+      handler: 'index.handler',
+      runtime: Runtime.NODEJS_20_X,
+      bundling: {
+        minify: true,
+      },
     });
 
     const myGateway = new gateway.RestApi(this, 'Products', {
