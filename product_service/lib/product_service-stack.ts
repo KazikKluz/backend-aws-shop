@@ -37,12 +37,21 @@ export class ProductServiceStack extends cdk.Stack {
       },
     });
 
-    const productsAPI = myGateway.root
-      .addResource('products')
-      .addMethod('GET', new gateway.LambdaIntegration(getProductList));
+    const productsAPI = myGateway.root.addResource('products');
+    productsAPI.addMethod('GET', new gateway.LambdaIntegration(getProductList));
+
+    const productAPI = productsAPI
+      .addResource('{id}')
+      .addMethod('GET', new gateway.LambdaIntegration(getProduct));
 
     new cdk.CfnOutput(this, `${ID}-getProductList-output`, {
       value: getProductList.addFunctionUrl({
+        authType: cdk.aws_lambda.FunctionUrlAuthType.NONE,
+      }).url,
+    });
+
+    new cdk.CfnOutput(this, `${ID}-getProduct-output`, {
+      value: getProduct.addFunctionUrl({
         authType: cdk.aws_lambda.FunctionUrlAuthType.NONE,
       }).url,
     });

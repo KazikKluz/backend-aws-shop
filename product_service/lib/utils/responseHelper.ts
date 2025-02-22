@@ -10,7 +10,7 @@ type products = {
 const responseHelper = (code: number, data: string | products) => {
   return {
     headers: {
-      'Access-Control-Allow-Headers': 'Content-Type',
+      'Content-Type': 'application/json',
       'Access-Control-Allow-Origin': '*',
       'Access-Control-Allow-Methods': 'OPTIONS,POST,GET',
     },
