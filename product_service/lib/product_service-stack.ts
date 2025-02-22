@@ -25,10 +25,18 @@ export class ProductServiceStack extends cdk.Stack {
       },
     });
 
+    const productsAPI = myGateway.root
+      .addResource('products')
+      .addMethod('GET', new gateway.LambdaIntegration(getProductList));
+
     new cdk.CfnOutput(this, `${ID}-getProductList-output`, {
       value: getProductList.addFunctionUrl({
         authType: cdk.aws_lambda.FunctionUrlAuthType.NONE,
       }).url,
+    });
+
+    new cdk.CfnOutput(this, `${ID}-gateway`, {
+      value: myGateway.url,
     });
   }
 }
