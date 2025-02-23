@@ -1,9 +1,9 @@
-import getProductById from './controller';
+import getProductsById from './controller';
 
 exports.handler = async (
   event: APIGatewayEvent
 ): Promise<APIGatewayResponse> => {
   const id = event.pathParameters?.id;
 
-  return await getProductById(id);
+  return await getProductsById(id);
 };

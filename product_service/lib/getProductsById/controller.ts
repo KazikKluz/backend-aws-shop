@@ -1,6 +1,6 @@
 import data from '../utils/mockData';
 
-const getProductById = async (id: string | undefined) => {
+const getProductsById = async (id: string | undefined) => {
   if (!id) {
     return {
       headers: {
@@ -47,4 +47,4 @@ const getProductById = async (id: string | undefined) => {
   }
 };
 
-export default getProductById;
+export default getProductsById;

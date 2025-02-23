@@ -1,6 +1,6 @@
 import data from '../utils/mockData';
 
-const getProductList = async () => {
+const getProductsList = async () => {
   try {
     return {
       headers: {
@@ -24,4 +24,4 @@ const getProductList = async () => {
   }
 };
 
-export default getProductList;
+export default getProductsList;

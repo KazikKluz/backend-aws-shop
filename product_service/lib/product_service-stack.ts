@@ -11,8 +11,8 @@ export class ProductServiceStack extends cdk.Stack {
 
     const ID = 'backend-shop';
 
-    const getProductList = new NodejsFunction(this, `${ID}-getProductList`, {
-      entry: path.join(__dirname, 'getProductList/index.ts'),
+    const getProductsList = new NodejsFunction(this, `${ID}-getProductsList`, {
+      entry: path.join(__dirname, 'getProductsList/index.ts'),
       handler: 'index.handler',
       runtime: Runtime.NODEJS_20_X,
       bundling: {
@@ -20,8 +20,8 @@ export class ProductServiceStack extends cdk.Stack {
       },
     });
 
-    const getProduct = new NodejsFunction(this, `${ID}-getProduct`, {
-      entry: path.join(__dirname, 'getProduct/index.ts'),
+    const getProductsById = new NodejsFunction(this, `${ID}-getProductsById`, {
+      entry: path.join(__dirname, 'getProductsById/index.ts'),
       handler: 'index.handler',
       runtime: Runtime.NODEJS_20_X,
       bundling: {
@@ -37,21 +37,24 @@ export class ProductServiceStack extends cdk.Stack {
       },
     });
 
-    const productsAPI = myGateway.root.addResource('products');
-    productsAPI.addMethod('GET', new gateway.LambdaIntegration(getProductList));
+    const getProductsListAPI = myGateway.root.addResource('products');
+    getProductsListAPI.addMethod(
+      'GET',
+      new gateway.LambdaIntegration(getProductsList)
+    );
 
-    const productAPI = productsAPI
+    const getProductsByIdAPI = getProductsListAPI
       .addResource('{id}')
-      .addMethod('GET', new gateway.LambdaIntegration(getProduct));
+      .addMethod('GET', new gateway.LambdaIntegration(getProductsById));
 
     new cdk.CfnOutput(this, `${ID}-getProductList-output`, {
-      value: getProductList.addFunctionUrl({
+      value: getProductsList.addFunctionUrl({
         authType: cdk.aws_lambda.FunctionUrlAuthType.NONE,
       }).url,
     });
 
     new cdk.CfnOutput(this, `${ID}-getProduct-output`, {
-      value: getProduct.addFunctionUrl({
+      value: getProductsById.addFunctionUrl({
         authType: cdk.aws_lambda.FunctionUrlAuthType.NONE,
       }).url,
     });

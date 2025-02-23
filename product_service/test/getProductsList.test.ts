@@ -1,9 +1,9 @@
-const { handler: getProductListHandler } = require('../lib/getProductList');
+const { handler: getProductsListHandler } = require('../lib/getProductsList');
 
 describe('getProductsList handler basic unit test', () => {
   it('should return list of products', async () => {
     const event = {} as Partial<APIGatewayEvent> as APIGatewayEvent;
-    const result = await getProductListHandler(event);
+    const result = await getProductsListHandler(event);
 
     expect(result.statusCode).toBe(200);
     expect(result.headers).toEqual({

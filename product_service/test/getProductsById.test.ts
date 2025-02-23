@@ -1,11 +1,11 @@
-const { handler: getProductHandler } = require('../lib/getProduct');
+const { handler: getProductsByIdHandler } = require('../lib/getProductsById');
 
-describe('getProduct handler basic unit test', () => {
+describe('getProductsById handler basic unit test', () => {
   it('should return a single product by provided ID', async () => {
     const event = {
       pathParameters: { id: '002' },
     } as Partial<APIGatewayEvent> as APIGatewayEvent;
-    const result = await getProductHandler(event);
+    const result = await getProductsByIdHandler(event);
 
     expect(result.statusCode).toBe(200);
     expect(result.headers).toEqual({
@@ -32,7 +32,7 @@ describe('getProduct handler basic unit test', () => {
       pathParameters: { id: 'fakeId' },
     } as Partial<APIGatewayEvent> as APIGatewayEvent;
 
-    const result = await getProductHandler(event);
+    const result = await getProductsByIdHandler(event);
 
     expect(result.statusCode).toBe(404);
     const body = JSON.parse(result.body);

@@ -1,7 +1,7 @@
-import getProductList from './controller';
+import getProductsList from './controller';
 
 exports.handler = async (
   event: APIGatewayEvent
 ): Promise<APIGatewayResponse> => {
-  return await getProductList();
+  return await getProductsList();
 };
