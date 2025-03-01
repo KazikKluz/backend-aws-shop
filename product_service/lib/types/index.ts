@@ -19,6 +19,11 @@ type Product = {
   price: number;
 };
 
+type Stock = {
+  product_id: string;
+  count: number;
+};
+
 type Products = {
   products: Product[];
 };
