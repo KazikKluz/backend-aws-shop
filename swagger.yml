@@ -37,7 +37,37 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-
+    post:
+      tags:
+        - Products
+      summary: add a new product
+      description: add a new product to the list
+      operationId: createProduct
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateProduct'
+        required: true
+      responses:
+        '201':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Product'
+        '400':
+          description: invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
   /products/{id}:
     get:
       tags:
@@ -85,7 +115,8 @@ components:
       properties:
         id:
           type: string
-          example: "001"
+          format: uuid
+          example: "7567ec4b-b10c-48c5-9345-fc73c48a8000"
           description: product unique identifier
         title:
           type: string
@@ -100,11 +131,42 @@ components:
           type: string
           example: "Product description"
           description: description of the product
+        count:
+          type: integer
+          example: 1
+          description: count of the product
       required:
         - id
         - title
         - price
         - description
+        - count
+    
+    CreateProduct:
+      type: object
+      properties:
+        title:
+          type: string
+          example: "Product Name"
+          description: name of the product
+        price:
+          type: number
+          format: integer
+          example: 11
+          description: price of the product
+        description:
+          type: string
+          example: "Product description"
+          description: description of the product
+        count:
+          type: integer
+          example: 1
+          description: count of the product
+      required:
+        - title
+        - price
+        - description
+        - count
 
     Error:
       type: object

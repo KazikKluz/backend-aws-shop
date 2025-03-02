@@ -1,13 +1,13 @@
-import getProductsList from './controller';
+import createProduct from './controller';
 
 exports.handler = async (
   event: APIGatewayEvent
 ): Promise<APIGatewayResponse> => {
-  console.log('getProductsList request', {
+  console.log('createProduct request', {
     path: event.path,
     method: event.httpMethod,
     parameters: event.pathParameters,
     body: event.body,
   });
-  return await getProductsList();
+  return await createProduct(event.body);
 };

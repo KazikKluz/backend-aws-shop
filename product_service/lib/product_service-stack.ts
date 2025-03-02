@@ -4,6 +4,7 @@ import { Runtime } from 'aws-cdk-lib/aws-lambda';
 import { Construct } from 'constructs';
 import path = require('path');
 import * as gateway from 'aws-cdk-lib/aws-apigateway';
+import * as dynamodb from 'aws-cdk-lib/aws-dynamodb';
 
 export class ProductServiceStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
@@ -11,12 +12,28 @@ export class ProductServiceStack extends cdk.Stack {
 
     const ID = 'backend-shop';
 
+    const products_table = dynamodb.Table.fromTableName(
+      this,
+      'products_table',
+      'products'
+    );
+
+    const stocks_table = dynamodb.Table.fromTableName(
+      this,
+      'stocks_table',
+      'stocks'
+    );
+
     const getProductsList = new NodejsFunction(this, `${ID}-getProductsList`, {
       entry: path.join(__dirname, 'getProductsList/index.ts'),
       handler: 'index.handler',
       runtime: Runtime.NODEJS_20_X,
       bundling: {
         minify: true,
+      },
+      environment: {
+        products: products_table.tableName,
+        stocks: stocks_table.tableName,
       },
     });
 
@@ -27,7 +44,31 @@ export class ProductServiceStack extends cdk.Stack {
       bundling: {
         minify: true,
       },
+      environment: {
+        products: products_table.tableName,
+        stocks: stocks_table.tableName,
+      },
     });
+
+    const createProduct = new NodejsFunction(this, `${ID}-createProduct`, {
+      entry: path.join(__dirname, 'createProduct/index.ts'),
+      handler: 'index.handler',
+      runtime: Runtime.NODEJS_20_X,
+      bundling: {
+        minify: true,
+      },
+      environment: {
+        products: products_table.tableName,
+        stocks: stocks_table.tableName,
+      },
+    });
+
+    products_table.grantReadData(getProductsList);
+    products_table.grantReadData(getProductsById);
+    products_table.grantWriteData(createProduct);
+    stocks_table.grantReadData(getProductsList);
+    stocks_table.grantReadData(getProductsById);
+    stocks_table.grantWriteData(createProduct);
 
     const myGateway = new gateway.RestApi(this, 'Products', {
       restApiName: 'Products Service',
@@ -41,6 +82,10 @@ export class ProductServiceStack extends cdk.Stack {
     getProductsListAPI.addMethod(
       'GET',
       new gateway.LambdaIntegration(getProductsList)
+    );
+    getProductsListAPI.addMethod(
+      'POST',
+      new gateway.LambdaIntegration(createProduct)
     );
 
     const getProductsByIdAPI = getProductsListAPI

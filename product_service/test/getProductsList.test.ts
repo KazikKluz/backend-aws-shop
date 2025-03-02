@@ -14,7 +14,7 @@ describe('getProductsList handler basic unit test', () => {
 
     const body = JSON.parse(result.body);
 
-    body.products.forEach((product: Product) => {
+    body.forEach((product: Product) => {
       expect(product).toHaveProperty('id');
       expect(product).toHaveProperty('title');
       expect(product).toHaveProperty('description');

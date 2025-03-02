@@ -1,7 +1,33 @@
+import {
+  DynamoDBDocumentClient,
+  GetCommand,
+  QueryCommand,
+} from '@aws-sdk/lib-dynamodb';
+import { mockClient } from 'aws-sdk-client-mock';
+
 const { handler: getProductsByIdHandler } = require('../lib/getProductsById');
+const mockDB = mockClient(DynamoDBDocumentClient);
 
 describe('getProductsById handler basic unit test', () => {
+  const logSpy = jest.spyOn(global.console, 'log').mockImplementation(() => {});
+  const errorSpy = jest
+    .spyOn(global.console, 'error')
+    .mockImplementation(() => {});
+
+  beforeEach(() => {
+    mockDB.reset();
+  });
+
+  afterAll(() => {
+    logSpy.mockRestore();
+    errorSpy.mockRestore();
+  });
   it('should return a single product by provided ID', async () => {
+    const mockProduct: Product = getProducts()[0];
+    const mockStock: Stock = {
+      product_id: mockProduct.id,
+      count: mockProduct.count,
+    };
     const event = {
       pathParameters: { id: '002' },
     } as Partial<APIGatewayEvent> as APIGatewayEvent;
@@ -16,7 +42,7 @@ describe('getProductsById handler basic unit test', () => {
 
     const body = JSON.parse(result.body);
 
-    body.products.forEach((product: Product) => {
+    body.forEach((product: Product) => {
       expect(product).toHaveProperty('id', '002');
       expect(product).toHaveProperty('title', 'test2');
       expect(product).toHaveProperty('description', 'more description');

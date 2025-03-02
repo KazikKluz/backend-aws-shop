@@ -11,4 +11,19 @@ const data = {
   ],
 };
 
+export const productsData = [
+  { title: 'test1', description: 'some description', price: 10 },
+  { title: 'test2', description: 'more description', price: 11 },
+  {
+    title: 'test3',
+    description: 'less description',
+    price: 12,
+  },
+  {
+    title: 'test4',
+    description: 'no description',
+    price: 14,
+  },
+];
+
 export default data;
