@@ -2,7 +2,7 @@ interface APIGatewayEvent {
   httpMethod: string;
   path: string;
   body?: string;
-  queryStringParameters?: { [key: string]: string | null } | null;
+  queryStringParameters?: { [key: string]: string | undefined } | null;
   pathParameters: { [key: string]: string | undefined } | null;
 }
 
