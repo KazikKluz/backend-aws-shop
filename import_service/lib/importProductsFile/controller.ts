@@ -1,6 +1,9 @@
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { PutObjectCommand, S3Client } from '@aws-sdk/client-s3';
 
+const REGION = process.env.REGION ?? 'eu-west-1';
+const BUCKET = process.env.BUCKET ?? 'import-bucket-s8d7f6';
+
 const importProductsFile = async (filename: string | undefined) => {
   if (!filename) {
     return {
@@ -14,18 +17,40 @@ const importProductsFile = async (filename: string | undefined) => {
     };
   }
 
-  const path = `uploaded/${filename}`;
+  try {
+    const client = new S3Client({ region: REGION });
 
-  const createPresignedUrlWithClient = ({ region, bucket, key }) => {
-    const client = new S3Client({ region });
-    const command = new PutObjectCommand({ Bucket: bucket, Key: key });
-    return getSignedUrl(client, command, { expiresIn: 60 });
-  };
+    const path = `uploaded/${filename}`;
 
-  return Promise.resolve({
-    statusCode: 200,
-    body: '',
-  });
+    const command = new PutObjectCommand({
+      Bucket: BUCKET,
+      Key: path,
+      ContentType: 'text/csv',
+    });
+
+    const url = await getSignedUrl(client, command, { expiresIn: 60 });
+
+    return {
+      headers: {
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'OPTIONS,POST,GET',
+      },
+      statusCode: 200,
+      body: url,
+    };
+  } catch (err) {
+    console.error('Generating signed url failure', err);
+    return {
+      headers: {
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'OPTIONS,POST,GET',
+      },
+      statusCode: 500,
+      body: JSON.stringify({ message: 'Internal server error' }),
+    };
+  }
 };
 
 export default importProductsFile;
