@@ -44,8 +44,8 @@ export class ImportServiceStack extends cdk.Stack {
       }
     );
 
-    importBucket.grantReadWrite(importProductsFile);
-    importBucket.grantRead(importFileParser);
+    importBucket.grantRead(importProductsFile);
+    importBucket.grantReadWrite(importFileParser);
 
     importBucket.addEventNotification(
       s3.EventType.OBJECT_CREATED,

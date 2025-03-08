@@ -34,7 +34,7 @@ const importFileParser = async (records: S3EventRecord[]) => {
             reject(err);
           })
           .on('end', async () => {
-            const aaa = await client.send(
+            await client.send(
               new CopyObjectCommand({
                 Bucket: BUCKET,
                 CopySource: `${BUCKET}/${path}`,
@@ -42,28 +42,15 @@ const importFileParser = async (records: S3EventRecord[]) => {
               })
             );
 
-            console.log(`aaa: ${aaa}`);
-
-            console.log(`file succesfully moved to /parsed folder, ${path}`);
-
-            const bbb = await client.send(
+            await client.send(
               new DeleteObjectCommand({
                 Bucket: BUCKET,
                 Key: path,
               })
             );
 
-            console.log(`bbb: ${bbb}`);
-            resolve(() => null);
+            resolve((value: unknown): void => {});
           });
-
-        client.send(
-          new CopyObjectCommand({
-            Bucket: BUCKET,
-            CopySource: `${BUCKET}/${path}`,
-            Key: path.replace('uploaded', 'parsed'),
-          })
-        );
       });
     }
 
