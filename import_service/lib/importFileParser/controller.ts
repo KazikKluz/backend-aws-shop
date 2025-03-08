@@ -1,7 +1,12 @@
 import csv = require('csv-parser');
 import { Readable } from 'stream';
 
-import { GetObjectCommand, S3Client } from '@aws-sdk/client-s3';
+import {
+  GetObjectCommand,
+  S3Client,
+  CopyObjectCommand,
+  DeleteObjectCommand,
+} from '@aws-sdk/client-s3';
 import { S3EventRecord } from 'aws-lambda';
 
 const REGION = process.env.REGION ?? 'eu-west-1';
@@ -13,24 +18,52 @@ const importFileParser = async (records: S3EventRecord[]) => {
   try {
     for (const file of records) {
       const path = file.s3.object.key;
-      const params = {
-        Bucket: BUCKET,
-        Key: path,
-      };
 
-      const result = client.send(new GetObjectCommand(params));
+      const result = client.send(
+        new GetObjectCommand({ Bucket: BUCKET, Key: path })
+      );
 
       const s3stream = (await result).Body as Readable;
 
-      await new Promise((res, rej) => {
+      await new Promise((resolve, reject) => {
         s3stream
           .pipe(csv())
           .on('data', (record) => console.log('Parsed record:', record))
           .on('error', (err) => {
             console.error('Error parsing record:', err);
-            rej(err);
+            reject(err);
           })
-          .on('end', () => res(null));
+          .on('end', async () => {
+            const aaa = await client.send(
+              new CopyObjectCommand({
+                Bucket: BUCKET,
+                CopySource: `${BUCKET}/${path}`,
+                Key: path.replace('uploaded', 'parsed'),
+              })
+            );
+
+            console.log(`aaa: ${aaa}`);
+
+            console.log(`file succesfully moved to /parsed folder, ${path}`);
+
+            const bbb = await client.send(
+              new DeleteObjectCommand({
+                Bucket: BUCKET,
+                Key: path,
+              })
+            );
+
+            console.log(`bbb: ${bbb}`);
+            resolve(() => null);
+          });
+
+        client.send(
+          new CopyObjectCommand({
+            Bucket: BUCKET,
+            CopySource: `${BUCKET}/${path}`,
+            Key: path.replace('uploaded', 'parsed'),
+          })
+        );
       });
     }
 

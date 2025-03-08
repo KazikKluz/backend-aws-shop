@@ -6,6 +6,7 @@ import path = require('path');
 
 import * as gateway from 'aws-cdk-lib/aws-apigateway';
 import * as s3 from 'aws-cdk-lib/aws-s3';
+import * as notification from 'aws-cdk-lib/aws-s3-notifications';
 
 const BUCKET = process.env.BUCKET ?? 'import-bucket-s8d7f6';
 
@@ -45,6 +46,12 @@ export class ImportServiceStack extends cdk.Stack {
 
     importBucket.grantReadWrite(importProductsFile);
     importBucket.grantRead(importFileParser);
+
+    importBucket.addEventNotification(
+      s3.EventType.OBJECT_CREATED,
+      new notification.LambdaDestination(importFileParser),
+      { prefix: 'uploaded/' }
+    );
 
     const myGateway = new gateway.RestApi(this, 'Imports', {
       restApiName: 'Import Service',
