@@ -55,22 +55,12 @@ const importFileParser = async (records: S3EventRecord[]) => {
     }
 
     return {
-      headers: {
-        'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Methods': 'OPTIONS,POST,GET',
-      },
       statusCode: 200,
       body: JSON.stringify({ message: 'File parsed successfully' }),
     };
   } catch (err) {
     console.error('Error while executing importFileParser lambda', err);
     return {
-      headers: {
-        'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Methods': 'OPTIONS,POST,GET',
-      },
       statusCode: 500,
       body: JSON.stringify({ message: 'Internal server error' }),
     };

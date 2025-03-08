@@ -45,7 +45,9 @@ export class ImportServiceStack extends cdk.Stack {
     );
 
     importBucket.grantRead(importProductsFile);
+    importBucket.grantPut(importProductsFile);
     importBucket.grantReadWrite(importFileParser);
+    importBucket.grantDelete(importFileParser);
 
     importBucket.addEventNotification(
       s3.EventType.OBJECT_CREATED,
@@ -58,13 +60,19 @@ export class ImportServiceStack extends cdk.Stack {
       defaultCorsPreflightOptions: {
         allowOrigins: gateway.Cors.ALL_ORIGINS,
         allowMethods: gateway.Cors.ALL_METHODS,
+        allowHeaders: ['Content-Type'],
       },
     });
 
     const importProductsFileAPI = myGateway.root.addResource('import');
     importProductsFileAPI.addMethod(
       'GET',
-      new gateway.LambdaIntegration(importProductsFile)
+      new gateway.LambdaIntegration(importProductsFile),
+      {
+        requestParameters: {
+          'method.request.querystring.name': true,
+        },
+      }
     );
 
     new cdk.CfnOutput(this, `${ID}-importProductsFile-output`, {

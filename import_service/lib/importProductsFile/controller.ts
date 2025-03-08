@@ -8,9 +8,8 @@ const importProductsFile = async (filename: string | undefined) => {
   if (!filename) {
     return {
       headers: {
-        'Content-Type': 'application/json',
         'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Methods': 'OPTIONS,POST,GET',
+        'Access-Control-Allow-Credentials': true,
       },
       statusCode: 400,
       body: JSON.stringify({ message: 'no query parameter present' }),
@@ -32,9 +31,8 @@ const importProductsFile = async (filename: string | undefined) => {
 
     return {
       headers: {
-        'Content-Type': 'application/json',
         'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Methods': 'OPTIONS,POST,GET',
+        'Access-Control-Allow-Credentials': true,
       },
       statusCode: 200,
       body: url,
@@ -43,9 +41,8 @@ const importProductsFile = async (filename: string | undefined) => {
     console.error('Generating signed url failure', err);
     return {
       headers: {
-        'Content-Type': 'application/json',
         'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Methods': 'OPTIONS,POST,GET',
+        'Access-Control-Allow-Credentials': true,
       },
       statusCode: 500,
       body: JSON.stringify({ message: 'Internal server error' }),
