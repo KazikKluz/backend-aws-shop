@@ -5,12 +5,17 @@ import { Runtime } from 'aws-cdk-lib/aws-lambda';
 import path = require('path');
 
 import * as gateway from 'aws-cdk-lib/aws-apigateway';
+import * as s3 from 'aws-cdk-lib/aws-s3';
+
+const BUCKET = process.env.BUCKET ?? 'import-bucket-s8d7f6';
 
 export class ImportServiceStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
 
     const ID = 'backend-shop';
+
+    const importBucket = s3.Bucket.fromBucketName(this, `${ID}-bucket`, BUCKET);
 
     const importProductsFile = new NodejsFunction(
       this,
@@ -24,6 +29,22 @@ export class ImportServiceStack extends cdk.Stack {
         },
       }
     );
+
+    const importFileParser = new NodejsFunction(
+      this,
+      `${ID}-importFileParser`,
+      {
+        entry: path.join(__dirname, `importFileParser/index.ts`),
+        handler: 'index.handler',
+        runtime: Runtime.NODEJS_20_X,
+        bundling: {
+          minify: true,
+        },
+      }
+    );
+
+    importBucket.grantReadWrite(importProductsFile);
+    importBucket.grantRead(importFileParser);
 
     const myGateway = new gateway.RestApi(this, 'Imports', {
       restApiName: 'Import Service',

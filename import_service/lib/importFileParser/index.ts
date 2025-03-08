@@ -1,15 +1,10 @@
+import { S3Event } from 'aws-lambda';
 import importFileParser from './controller';
 
-exports.handler = async (
-  event: APIGatewayEvent
-): Promise<APIGatewayResponse> => {
+exports.handler = async (event: S3Event): Promise<APIGatewayResponse> => {
   console.log('importFileParser request', {
-    path: event.path,
-    method: event.httpMethod,
-    parameters: event.pathParameters,
-    query: event.queryStringParameters,
-    body: event.body,
+    records: event.Records,
   });
 
-  return await importFileParser();
+  return await importFileParser(event.Records);
 };
