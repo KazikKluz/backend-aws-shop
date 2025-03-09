@@ -30,7 +30,6 @@ const importFileParser = async (records: S3EventRecord[]) => {
           .pipe(csv())
           .on('data', (record) => console.log('Parsed record:', record))
           .on('error', (err) => {
-            console.error('Error parsing record:', err);
             reject(err);
           })
           .on('end', async () => {

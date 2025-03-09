@@ -9,7 +9,7 @@ const importProductsFile = async (filename: string | undefined) => {
     return {
       headers: {
         'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Credentials': true,
+        'Access-Control-Allow-Credentials': 'true',
       },
       statusCode: 400,
       body: JSON.stringify({ message: 'no query parameter present' }),
@@ -32,7 +32,7 @@ const importProductsFile = async (filename: string | undefined) => {
     return {
       headers: {
         'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Credentials': true,
+        'Access-Control-Allow-Credentials': 'true',
       },
       statusCode: 200,
       body: url,
@@ -42,7 +42,7 @@ const importProductsFile = async (filename: string | undefined) => {
     return {
       headers: {
         'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Credentials': true,
+        'Access-Control-Allow-Credentials': 'true',
       },
       statusCode: 500,
       body: JSON.stringify({ message: 'Internal server error' }),

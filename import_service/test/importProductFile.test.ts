@@ -1,39 +1,94 @@
-import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
+import { APIGatewayProxyEvent } from 'aws-lambda';
+import { mockClient } from 'aws-sdk-client-mock';
+import { S3Client } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
-import importProductsFile from '../lib/importProductsFile/controller';
-
-jest.mock('@aws-sdk/client-s3', () => ({
-  S3Client: jest.fn().mockImplementation(() => ({
-    send: jest.fn(),
-  })),
-  PutObjectCommand: jest.fn(),
-}));
-
+const { handler } = require('../lib/importProductsFile');
+// Mock getSignedUrl
 jest.mock('@aws-sdk/s3-request-presigner', () => ({
   getSignedUrl: jest.fn(),
 }));
 
-describe('importProductsFile lambda', () => {
+// Create S3 mock
+const s3Mock = mockClient(S3Client);
+
+describe('importProductsFile Lambda', () => {
   beforeEach(() => {
-    (getSignedUrl as jest.Mock).mockResolvedValue('https://signed-url.com');
+    s3Mock.reset();
+    jest.clearAllMocks();
+    (getSignedUrl as jest.Mock).mockResolvedValue(
+      'https://mock-signed-url.com'
+    );
+  });
+
+  it('should return 400 if filename is not provided', async () => {
+    const event = {
+      queryStringParameters: null,
+    } as APIGatewayProxyEvent;
+
+    const result = await handler(event);
+
+    expect(result.statusCode).toBe(400);
+    expect(result.headers).toEqual({
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Credentials': 'true',
+    });
+    expect(JSON.parse(result.body)).toEqual({
+      message: 'no query parameter present',
+    });
   });
 
   it('should return signed URL when filename is provided', async () => {
+    const mockSignedUrl = 'https://mock-signed-url.com';
+    (getSignedUrl as jest.Mock).mockResolvedValue(mockSignedUrl);
+
     const event = {
       queryStringParameters: { name: 'test.csv' },
-    } as any;
+    } as unknown as APIGatewayProxyEvent;
 
-    const result = await importProductsFile(event);
+    const result = await handler(event);
 
+    // Verify response
     expect(result.statusCode).toBe(200);
-    expect(result.body).toContain('https://signed-url.com');
+    expect(result.headers).toEqual({
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Credentials': 'true',
+    });
+    expect(result.body).toEqual(mockSignedUrl);
+
+    // Verify getSignedUrl was called with correct parameters
+    expect(getSignedUrl).toHaveBeenCalledTimes(1);
+    const [client, command, options] = (getSignedUrl as jest.Mock).mock
+      .calls[0];
+
+    expect(command.input).toEqual({
+      Bucket: 'import-bucket-s8d7f6',
+      Key: 'uploaded/test.csv',
+      ContentType: 'text/csv',
+    });
+    expect(options).toEqual({ expiresIn: 60 });
   });
 
-  it('should return 400 when filename is not provided', async () => {
-    const event = { queryStringParameters: {} } as any;
+  it('should return 500 when S3 operation fails', async () => {
+    (getSignedUrl as jest.Mock).mockRejectedValue(new Error('S3 Error'));
 
-    const result = await importProductsFile(event);
+    const event = {
+      queryStringParameters: {
+        name: 'test.csv',
+      },
+    } as unknown as APIGatewayProxyEvent;
 
-    expect(result.statusCode).toBe(400);
+    const result = await handler(event);
+
+    expect(result.statusCode).toBe(500);
+    expect(JSON.parse(result.body)).toEqual({
+      message: 'Internal server error',
+    });
+    expect(getSignedUrl).toHaveBeenCalledTimes(1);
+    const [client, command] = (getSignedUrl as jest.Mock).mock.calls[0];
+    expect(command.input).toEqual({
+      Bucket: 'import-bucket-s8d7f6',
+      Key: 'uploaded/test.csv',
+      ContentType: 'text/csv',
+    });
   });
 });
