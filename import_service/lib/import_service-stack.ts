@@ -7,6 +7,8 @@ import path = require('path');
 import * as gateway from 'aws-cdk-lib/aws-apigateway';
 import * as s3 from 'aws-cdk-lib/aws-s3';
 import * as notification from 'aws-cdk-lib/aws-s3-notifications';
+import * as sqs from 'aws-cdk-lib/aws-sqs';
+import * as iam from 'aws-cdk-lib/aws-iam';
 
 const BUCKET = process.env.BUCKET ?? 'import-bucket-s8d7f6';
 
@@ -43,6 +45,35 @@ export class ImportServiceStack extends cdk.Stack {
         },
       }
     );
+    const catalogItemsQueue = sqs.Queue.fromQueueArn(
+      this,
+      `${ID}-catalogItemsQueue`,
+      'arn:aws:sqs:eu-west-1:637423385007:catalogItemsQueue'
+    );
+
+    const servicePolicy = new iam.PolicyStatement({
+      effect: iam.Effect.ALLOW,
+      actions: [
+        'sqs:SendMessage',
+        'sqs:ReceiveMessage',
+        'sqs:DeleteMessage',
+        'sqs:GetQueueAttributes',
+        'sqs:GetQueueUrl',
+        'sqs:ListQueues',
+      ],
+      resources: [catalogItemsQueue.queueArn],
+      principals: [new iam.AccountRootPrincipal()],
+    });
+
+    importFileParser.addToRolePolicy(
+      new iam.PolicyStatement({
+        effect: iam.Effect.ALLOW,
+        actions: ['sqs:SendMessage'],
+        resources: [catalogItemsQueue.queueArn],
+      })
+    );
+
+    catalogItemsQueue.addToResourcePolicy(servicePolicy);
 
     importBucket.grantRead(importProductsFile);
     importBucket.grantPut(importProductsFile);
