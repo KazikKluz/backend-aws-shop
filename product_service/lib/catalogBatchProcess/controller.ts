@@ -75,7 +75,7 @@ const catalogBatchProcess = async (records: SQSRecord[]) => {
         await sns.send(
           new PublishCommand({
             TopicArn: process.env.topic_arn,
-            Message: `New product added: ${product.title}`,
+            Message: `New product added: ${product.title}, price ${product.price}`,
             Subject: 'New products',
             MessageAttributes: {
               price: {
