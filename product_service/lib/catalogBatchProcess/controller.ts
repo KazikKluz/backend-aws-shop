@@ -25,9 +25,16 @@ const catalogBatchProcess = async (records: SQSRecord[]) => {
         product = JSON.parse(item.body);
 
         if (
-          !product.title ||
+          !product ||
+          typeof product.id !== 'string' ||
+          typeof product.title !== 'string' ||
           typeof product.price !== 'number' ||
-          typeof product.count !== 'number'
+          typeof product.count !== 'number' ||
+          (typeof product.description !== 'string' &&
+            typeof product.description !== 'undefined' &&
+            product.description !== null) ||
+          product.count < 0 ||
+          product.price <= 0
         ) {
           throw new Error('Invalid product data types');
         }

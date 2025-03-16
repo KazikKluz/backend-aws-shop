@@ -31,7 +31,6 @@ const importFileParser = async (records: S3EventRecord[]) => {
         s3stream
           .pipe(csv())
           .on('data', async (record) => {
-            console.log(`Record: ${JSON.stringify(record)}`);
             return await sqs.send(
               new SendMessageCommand({
                 QueueUrl:
