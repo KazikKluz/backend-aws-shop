@@ -9,10 +9,14 @@ export class AuthorizationServiceStack extends cdk.Stack {
     super(scope, id, props);
 
     const ID = 'backend-shop';
+    const username = 'KazikKluz';
 
     const basicAuthorizer = new NodejsFunction(this, `${ID}-basicAuthorizer`, {
       entry: path.join(__dirname, `basicAuthorizer/index.ts`),
       handler: 'index.handler',
+      environment: {
+        [username]: 'TEST_PASSWORD',
+      },
       runtime: Runtime.NODEJS_20_X,
       bundling: {
         minify: true,
