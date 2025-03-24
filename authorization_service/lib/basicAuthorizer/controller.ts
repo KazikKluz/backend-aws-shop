@@ -30,7 +30,7 @@ const basicAuthorizer = async (token: string, arn: string) => {
   if (!token) {
     return {
       isAuthorized: false,
-    };
+    } as unknown as APIGatewayAuthorizerResult;
   }
 
   const encodedCredentials = token.split(' ')[1];
