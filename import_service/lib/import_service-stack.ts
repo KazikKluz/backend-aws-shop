@@ -3,6 +3,7 @@ import { Construct } from 'constructs';
 import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
 import { Runtime } from 'aws-cdk-lib/aws-lambda';
 import path = require('path');
+import * as lambda from 'aws-cdk-lib/aws-lambda';
 
 import * as gateway from 'aws-cdk-lib/aws-apigateway';
 import * as s3 from 'aws-cdk-lib/aws-s3';
@@ -12,13 +13,24 @@ import * as iam from 'aws-cdk-lib/aws-iam';
 
 const BUCKET = process.env.BUCKET ?? 'import-bucket-s8d7f6';
 
+export interface ImportServiceProps extends cdk.StackProps {
+  stage?: string;
+  basicAuthorizer: string;
+}
+
 export class ImportServiceStack extends cdk.Stack {
-  constructor(scope: Construct, id: string, props?: cdk.StackProps) {
+  constructor(scope: Construct, id: string, props: ImportServiceProps) {
     super(scope, id, props);
 
     const ID = 'backend-shop';
 
     const importBucket = s3.Bucket.fromBucketName(this, `${ID}-bucket`, BUCKET);
+
+    const basicAuthorizer = lambda.Function.fromFunctionArn(
+      this,
+      'BasicAuthorizer',
+      props.basicAuthorizer
+    );
 
     const importProductsFile = new NodejsFunction(
       this,
@@ -91,20 +103,60 @@ export class ImportServiceStack extends cdk.Stack {
       defaultCorsPreflightOptions: {
         allowOrigins: gateway.Cors.ALL_ORIGINS,
         allowMethods: gateway.Cors.ALL_METHODS,
-        allowHeaders: ['Content-Type'],
+        allowHeaders: [
+          'X-Amz-Date',
+          'Authorization',
+          'X-Api-Key',
+          'X-Amz-Security-Token',
+          'Content-Type',
+        ],
       },
     });
 
-    const importProductsFileAPI = myGateway.root.addResource('import');
-    importProductsFileAPI.addMethod(
-      'GET',
-      new gateway.LambdaIntegration(importProductsFile),
+    myGateway.addGatewayResponse('Unauthorized', {
+      type: gateway.ResponseType.UNAUTHORIZED,
+      statusCode: '401',
+      templates: {
+        'application/json': '{ "message": "Unauthorized" }',
+      },
+      responseHeaders: {
+        'Access-Control-Allow-Origin': "'*'",
+        'Access-Control-Allow-Headers': "'*'",
+      },
+    });
+
+    myGateway.addGatewayResponse('Access Denied', {
+      type: gateway.ResponseType.ACCESS_DENIED,
+      statusCode: '403',
+      templates: {
+        'application/json': '{ "message": "Access denied" }',
+      },
+      responseHeaders: {
+        'Access-Control-Allow-Origin': "'*'",
+        'Access-Control-Allow-Headers': "'*'",
+      },
+    });
+
+    const auth = new gateway.TokenAuthorizer(
+      this,
+      `${ID}-ImportApiAuthorizer`,
       {
-        requestParameters: {
-          'method.request.querystring.name': true,
-        },
+        handler: basicAuthorizer,
+        identitySource: gateway.IdentitySource.header('Authorization'),
+        resultsCacheTtl: cdk.Duration.seconds(0),
       }
     );
+
+    const importProductsIntegration = new gateway.LambdaIntegration(
+      importProductsFile
+    );
+
+    const importProductsFileAPI = myGateway.root.addResource('import');
+
+    importProductsFileAPI.addMethod('GET', importProductsIntegration, {
+      authorizer: auth,
+      authorizationType: gateway.AuthorizationType.CUSTOM,
+    });
 
     new cdk.CfnOutput(this, `${ID}-importProductsFile-output`, {
       value: importProductsFile.addFunctionUrl({
