@@ -3,6 +3,7 @@ import { Construct } from 'constructs';
 import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
 import { Runtime } from 'aws-cdk-lib/aws-lambda';
 import path = require('path');
+import * as iam from 'aws-cdk-lib/aws-iam';
 
 export class AuthorizationServiceStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
@@ -21,6 +22,18 @@ export class AuthorizationServiceStack extends cdk.Stack {
       bundling: {
         minify: true,
       },
+    });
+
+    basicAuthorizer.addToRolePolicy(
+      new cdk.aws_iam.PolicyStatement({
+        actions: ['lambda:InvokeFunction'],
+        resources: ['*'],
+      })
+    );
+
+    basicAuthorizer.addPermission('ApiGatewayInvokeFunction', {
+      principal: new iam.ServicePrincipal('apigateway.amazonaws.com'),
+      sourceArn: `arn:aws:execute-api:${this.region}:${this.account}:*`,
     });
   }
 }

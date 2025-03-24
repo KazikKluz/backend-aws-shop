@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import * as cdk from 'aws-cdk-lib';
 import { ImportServiceStack } from '../lib/import_service-stack';
-
+import 'source-map-support/register';
 const app = new cdk.App();
 new ImportServiceStack(app, 'ImportServiceStack', {
   /* If you don't specify 'env', this stack will be environment-agnostic.
@@ -14,6 +14,8 @@ new ImportServiceStack(app, 'ImportServiceStack', {
     account: process.env.CDK_DEFAULT_ACCOUNT,
     region: process.env.CDK_DEFAULT_REGION,
   },
+  basicAuthorizer:
+    'arn:aws:lambda:eu-west-1:637423385007:function:AuthorizationServiceStack-backendshopbasicAuthoriz-78WeiHsjurIX',
 
   /* Uncomment the next line if you know exactly what Account and Region you
    * want to deploy the stack to. */
@@ -21,3 +23,4 @@ new ImportServiceStack(app, 'ImportServiceStack', {
 
   /* For more information, see https://docs.aws.amazon.com/cdk/latest/guide/environments.html */
 });
+app.synth();

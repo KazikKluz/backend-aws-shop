@@ -27,33 +27,30 @@ const attachPolicy = (
 const basicAuthorizer = async (token: string, arn: string) => {
   console.log('Event: ', JSON.stringify(token));
 
-  try {
-    if (!token) {
-      return attachPolicy('user', 'Deny', arn);
-    }
-
-    const encodedCredentials = token.split(' ')[1];
-    const buffer = Buffer.from(encodedCredentials, 'base64');
-    console.log(buffer);
-
-    const credentials = buffer.toString('utf-8').split(':');
-    const username = credentials[0];
-    const password = credentials[1];
-
-    console.log('username:', username);
-    console.log('password:', password);
-
-    const savedPassword = process.env[username];
-    console.log('saved password:', savedPassword);
-
-    const effect =
-      !savedPassword || savedPassword !== password ? 'Deny' : 'Allow';
-
-    return attachPolicy('user', effect, arn);
-  } catch (err) {
-    console.log('Cannot apply policy:', err);
-    return attachPolicy('user', 'Deny', arn);
+  if (!token) {
+    return {
+      isAuthorized: false,
+    };
   }
+
+  const encodedCredentials = token.split(' ')[1];
+  const buffer = Buffer.from(encodedCredentials, 'base64');
+  console.log(buffer);
+
+  const credentials = buffer.toString('utf-8').split(':');
+  const username = credentials[0];
+  const password = credentials[1];
+
+  console.log('username:', username);
+  console.log('password:', password);
+
+  const savedPassword = process.env[username];
+  console.log('saved password:', savedPassword);
+
+  const effect =
+    !savedPassword || savedPassword !== password ? 'Deny' : 'Allow';
+
+  return attachPolicy('user', effect, arn);
 };
 
 export default basicAuthorizer;
